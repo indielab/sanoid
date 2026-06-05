@@ -1,0 +1,89 @@
+#!/usr/bin/perl
+
+# findbay -- tool to quickly locate a drive based on even a partial ID
+#
+# usage: findbay devicetag
+#
+# devicetag may be a fully specified path to a drive (eg /dev/sda) or 
+# it may be an identifier for a drive listed in /dev/disk/by-id.
+#
+# example usage:
+# 
+
+use Cwd;
+use Cwd qw(abs_path);
+
+my $tag = $ARGV[0];
+
+
+my $byid = "/dev/disk/by-id";
+
+# sadly necessary because abs_path and every other function
+# I've tried to expand relative links begins with cwd, rather
+# than beginning with the directory of an absolute-pathed
+# file!
+my $realworkingdir = getcwd;
+
+chdir $byid;
+
+my @drives;
+
+opendir my $dir, $byid or die "Cannot open $byid: $!\n";
+for my $drive (readdir $dir) {
+	# skip . or ..
+	next if ($drive =~ /^\.{1,2}$/);
+	# skip partitions, we only want whole drives here
+	next if ($drive =~ /part\d*$/);
+	push (@drives, $drive);
+
+}
+closedir $dir;
+
+my @matchingdrives = findDrives($tag,@drives);
+
+# immediately change working dir back to what it was
+chdir $realworkingdir;
+
+if (scalar @matchingdrives <1) {
+	print STDERR "Sorry, no drives matching $tag found.\n";
+	exit 1;
+} elsif (scalar @matchingdrives >1) {
+	print STDERR "Sorry, multiple drives (@matchingdrives) match $tag.\n";
+	exit 2;
+} else {
+	print "UNIQUE MATCH: $matchingdrives[0]\n";
+}
+		
+
+exit 3;
+
+########################################################################
+########################################################################
+########################################################################
+
+sub getraw {
+	my ($drive) = @_;
+	my $raw = abs_path($drive);
+	return $raw;
+}
+
+sub findDrives {
+	my ($tag,@drives) = @_;
+	my @results;
+	my $result;
+
+	foreach my $drive (@drives) {
+		if ($drive =~ /$tag/) {
+			my $raw = getraw($drive);
+			push (@results,$raw);
+		}
+	}
+
+	@results = uniq(@results);
+	return @results;
+}
+
+sub uniq {
+    my %seen;
+    grep !$seen{$_}++, @_;
+}
