@@ -60,7 +60,7 @@ if (scalar @matchingdrives <1) {
 	print STDERR "Sorry, multiple drives (@matchingdrives) match $tag.\n";
 	exit 2;
 } else {
-	print "UNIQUE MATCH: $matchingdrives[0]\n";
+	print "$matchingdrives[0]\n";
 }
 		
 
