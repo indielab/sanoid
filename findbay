@@ -8,7 +8,16 @@
 # it may be an identifier for a drive listed in /dev/disk/by-id.
 #
 # example usage:
+#
+# root@elden:/usr/local/bin# zpool status | grep nvme
+#	  nvme-SHGP31-2000GM_ANA7N702810107S1O-part3  ONLINE       0     0     0
+#
+# root@elden:/usr/local/bin# findbay SHGP31
+# UNIQUE MATCH: /dev/nvme0n1
 # 
+# Future versions of this tool will directly blip drive activity lights for you.
+# In the meantime, try eg pv < `findbay SHGP31` > /dev/null -- and don't forget
+# the backticks!
 
 use Cwd;
 use Cwd qw(abs_path);
